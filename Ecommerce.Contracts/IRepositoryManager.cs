@@ -2,6 +2,6 @@
 
 public interface IRepositoryManager
 {
-
+    IProductRepository ProductsRepository { get; }
     Task SaveAsync();
 }
