@@ -1,4 +1,5 @@
-﻿using Ecommerce.Api.JwtConfig;
+﻿using AspNetCoreRateLimit;
+using Ecommerce.Api.JwtConfig;
 using Ecommerce.Contracts;
 using Ecommerce.Entities;
 using Ecommerce.Entities.Models;
@@ -111,5 +112,21 @@ public static class ServicesExtensions
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
                 };
             });
+    }
+    public static void ConfigureRateLimitMiddleware(
+       this IServiceCollection services,
+       IConfiguration configuration
+   )
+    {
+        services.AddMemoryCache();
+        services.AddHttpContextAccessor();
+        services.AddInMemoryRateLimiting();
+
+        services.Configure<IpRateLimitOptions>(configuration.GetSection("IpRateLimiting"));
+        services.Configure<IpRateLimitPolicies>(configuration.GetSection("IpRateLimitPolicies"));
+        services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+        services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+        services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+        services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
     }
 }

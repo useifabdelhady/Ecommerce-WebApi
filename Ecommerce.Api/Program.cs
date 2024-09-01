@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using Ecommerce.Api;
 using Ecommerce.Api.Extensions;
 using Ecommerce.Presentation.Actions;
@@ -17,6 +18,7 @@ builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJWT(builder.Configuration);
 builder.Services.AddScoped<ValidationActionAttribute>();
 builder.Services.AddScoped<ValidationProductAttribute>();
+builder.Services.ConfigureRateLimitMiddleware(builder.Configuration);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -35,6 +37,8 @@ app.UseCors();
 app.UseHttpsRedirection();
 // Extenstions
 app.ConfigureExceptionHandler();
+// Rate limit middleware
+app.UseIpRateLimiting();
 
 // auth Identity
 app.UseAuthentication();
