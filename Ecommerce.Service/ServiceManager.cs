@@ -6,6 +6,7 @@ namespace Ecommerce.Service;
 
 public class ServiceManager : IServiceManager
 {
+    private readonly Lazy<IUserService> userService;
     private readonly Lazy<IProductService> productService;
     private readonly Lazy<ICartService> cartService;
     public ServiceManager(
@@ -14,13 +15,13 @@ public class ServiceManager : IServiceManager
     /* UserManager<User> userManager*/
     )
     {
-
+        userService = new(() => new UserService(repoManager, mapper));
         cartService = new(() => new CartService(repoManager, mapper));
         productService = new(() => new ProductService(repoManager, mapper));
     }
 
     public ICartService CartService => cartService.Value;
     public IProductService ProductService => productService.Value;
-
+    public IUserService UsersService => userService.Value;
 
 }
