@@ -1,5 +1,7 @@
 ﻿using Ecommerce.Contracts;
 using Ecommerce.Repository;
+using Ecommerce.Service;
+using Ecommerce.Service.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -52,6 +54,12 @@ public static class ServicesExtensions
 
     public static void ConfigureRepositoryManager(this IServiceCollection services) =>
         services.AddScoped<IRepositoryManager, RepositoryManager>();
+
+    public static void ConfigureServiceManager(this IServiceCollection service) =>
+       service.AddScoped<IServiceManager, ServiceManager>();
+
+    public static void ConfigureAutoMapper(this IServiceCollection services) =>
+      services.AddAutoMapper(typeof(MapperProfile).Assembly);
 
 
 }
