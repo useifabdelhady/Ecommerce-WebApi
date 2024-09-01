@@ -1,9 +1,16 @@
-﻿using Ecommerce.Contracts;
+﻿using Ecommerce.Api.JwtConfig;
+using Ecommerce.Contracts;
+using Ecommerce.Entities;
+using Ecommerce.Entities.Models;
 using Ecommerce.Repository;
 using Ecommerce.Service;
 using Ecommerce.Service.Contracts;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Ecommerce.Api.Extensions;
 
@@ -61,5 +68,48 @@ public static class ServicesExtensions
     public static void ConfigureAutoMapper(this IServiceCollection services) =>
       services.AddAutoMapper(typeof(MapperProfile).Assembly);
 
+    public static void ConfigureIdentity(this IServiceCollection services)
+    {
+        services
+            .AddIdentity<User, Role>()
+            .AddEntityFrameworkStores<RepositoryContext>()
+            .AddDefaultTokenProviders();
 
+        services.Configure<IdentityOptions>(config =>
+        {
+            config.Password.RequireLowercase = true;
+            config.Password.RequireDigit = true;
+            config.User.AllowedUserNameCharacters = String.Empty;
+            config.User.RequireUniqueEmail = true;
+        });
+    }
+
+    public static void ConfigureJWT(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<JWTOptions>(configuration.GetSection("JWTOptions"));
+        services.AddTransient<ITokenGenerator, TokenGenerator>();
+
+        var jwtSettings = configuration.GetSection("JWTOptions");
+        var secretKey = jwtSettings["SecretKey"] ?? throw new ArgumentNullException("SecretKey");
+
+        services
+            .AddAuthentication(opts =>
+            {
+                opts.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opts.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(opts =>
+            {
+                opts.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings["ValidIssuer"],
+                    ValidAudience = jwtSettings["ValidAudience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+                };
+            });
+    }
 }
